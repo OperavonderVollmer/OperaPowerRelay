@@ -401,27 +401,29 @@ def timed_delay(wait_time: float, variant_time_x: float = 0, variant_time_y: flo
     variant_time_x, variant_time_y = sorted([max(0, variant_time_x), max(0, variant_time_y)])
 
     total_delay = wait_time + random.uniform(variant_time_x, variant_time_y)
+    print_from("OperaPowerTools", f"Waiting for {total_delay:.2f} seconds...")
     time.sleep(total_delay)
 
 
-def random_within_boundary_box(x: float, y: float, h: float, w: float) -> tuple[int, int]:
+def random_within_boundary_box(x: float, y: float, h: float, w: float, centered: bool = False) -> tuple[int, int]:
     """
     Generates a random integer coordinate within a specified boundary box.
 
-    The function calculates the minimum and maximum x and y coordinates based on the given
-    top-left corner (x, y) and dimensions (h, w) of the boundary box. It then returns a
-    random coordinate that lies within these boundaries, inclusive.
+    If `centered` is True, the (x, y) coordinates represent the center of the boundary box,
+    and the function adjusts the min/max values accordingly.
 
     Parameters
     ----------
     x : float
-        The x-coordinate of the top-left corner of the boundary box.
+        The x-coordinate of the top-left corner (or center if centered=True) of the boundary box.
     y : float
-        The y-coordinate of the top-left corner of the boundary box.
+        The y-coordinate of the top-left corner (or center if centered=True) of the boundary box.
     h : float
         The height of the boundary box.
     w : float
         The width of the boundary box.
+    centered : bool, optional
+        If True, the given (x, y) is treated as the center of the box instead of the top-left corner.
 
     Returns
     -------
@@ -431,13 +433,18 @@ def random_within_boundary_box(x: float, y: float, h: float, w: float) -> tuple[
     Raises
     ------
     ValueError
-        If the calculated minimum coordinates are greater than the maximum coordinates due to
+        If the calculated min coordinates are greater than the max coordinates due to
         non-positive dimensions, indicating an invalid boundary box.
     """
 
     import random
-    x_min, y_min = int(x), int(y)
-    x_max, y_max = int(x + w), int(y + h)
+
+    if centered:
+        x_min, x_max = int(x - w / 2), int(x + w / 2)
+        y_min, y_max = int(y - h / 2), int(y + h / 2)
+    else:
+        x_min, x_max = int(x), int(x + w)
+        y_min, y_max = int(y), int(y + h)
 
     if x_min > x_max or y_min > y_max:
         raise ValueError(f"Invalid boundary box: ({x}, {y}, {h}, {w}). Ensure width and height are positive.")
@@ -625,7 +632,32 @@ def get_main_idea(passage: str, sentences: int = 1, summarizer: str = 'lsa') -> 
     return " ".join(str(sentence) for sentence in summary)
 
 
-def json_to_dict(path: str) -> dict:
-    import json
-    with open(path, "r") as f:
-        return json.load(f)
+def print_from(name: str, message: str) -> None:
+    """
+    Prints a message with the given name, prefixed in square brackets.
+
+    Parameters
+    ----------
+    name : str
+        The name to print in square brackets.
+    message : str
+        The message to print after the name.
+    """
+    
+    print(f"[{name}] {message}")
+
+def print_pretty(message: str, flourish: str, num: int) -> None:
+
+    """
+    Prints a message with a flourish around it.
+
+    Parameters
+    ----------
+    message : str
+        The message to print.
+    flourish : str
+        The character to use for the flourish.
+    num : int
+        The number of times to repeat the flourish on each side of the message.
+    """
+    print(f"{flourish * num} {message} {flourish * num}")
