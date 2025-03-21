@@ -1,0 +1,9 @@
+inflect
+jellyfish
+metaphone
+nltk
+psutil
+pyperclip
+rapidfuzz
+sumy
+word2number
