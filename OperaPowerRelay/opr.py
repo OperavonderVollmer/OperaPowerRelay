@@ -1,23 +1,30 @@
 """
-    OperaPowerTools
-    Yippie
+    OperaPowerRelay
+    Yippie!!!
 """
 
+CURRENT_VERSION = "v1.1.1"
 
-def opt_info() -> str:
+def get_version() -> str:
     """
-    Provide a brief description of the OperaPowerTools utility.
+        I'm going crazy1111
+    """
+    return CURRENT_VERSION
+
+def opr_info() -> str:
+    """
+    Provide a brief description of the OperaPowerRelay utility.
 
     Returns
     -------
     str
-        A message describing the purpose and design philosophy of the OperaPowerTool.
+        A message describing the purpose and design philosophy of the OperaPowerRelay.
         The toolkit is designed for lightweight, cross-project utility functions with 
         minimal load times due to on-demand imports.
     """
 
     message = (
-        "OperaPowerTool is a lightweight utility toolkit for functions that aren't worth defining "
+        "OperaPowerRelay is a lightweight utility toolkit for functions that aren't worth defining "
         "in a single script but are useful across multiple projects. Imports are handled within "
         "each function to keep load times minimal."
     )
