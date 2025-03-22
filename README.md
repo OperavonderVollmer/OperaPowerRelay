@@ -1,6 +1,6 @@
-# OperaPowerTools
+# OperaPowerRelay
 
-**OperaPowerTools** is a collection of powerful utilities designed to simplify and automate various tasks. With this package, you gain access to a range of useful functions that can enhance your workflow. It includes tools for text manipulation, system information gathering, and much more.
+**OperaPowerRelay** is a collection of powerful utilities designed to simplify and automate various tasks. With this package, you gain access to a range of useful functions that can enhance your workflow. It includes tools for text manipulation, system information gathering, and much more.
 
 ## Features
 - **Text utilities**: Functions for string manipulation, cleaning, and comparison.
@@ -9,14 +9,14 @@
 
 ## Installation
 
-You can install **OperaPowerTools** directly from your local development environment using `pip`:
+You can install **OperaPowerRelay** directly from your local development environment using `pip`:
 
 1. Clone or download the repository.
 
 2. Navigate to the directory containing `setup.py`:
 
     ```bash
-    cd /path/to/OperaPowerTools
+    cd /path/to/OperaPowerRelay
     ```
 
 3. Install the package in **editable mode**:
@@ -25,18 +25,18 @@ You can install **OperaPowerTools** directly from your local development environ
     pip install -e .
     ```
 
-This will install **OperaPowerTools** and allow you to import and use it in any Python project.
+This will install **OperaPowerRelay** and allow you to import and use it in any Python project.
 
 ## Usage
 
-Once installed, you can import **OperaPowerTools** into your Python code and start using its utilities.
+Once installed, you can import **OperaPowerRelay** into your Python code and start using its utilities.
 
 ### Example: Importing and Using the Package
 
 Here’s how to import the package:
 
 ```python
-from OperaPowerTools import opt  # Importing the opt module
+from OperaPowerRelay import opt  # Importing the opt module
 
 # Example usage of a function within the opt module
 result = opt.some_function()
