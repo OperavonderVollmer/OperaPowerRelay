@@ -401,7 +401,7 @@ def timed_delay(wait_time: float, variant_time_x: float = 0, variant_time_y: flo
     variant_time_x, variant_time_y = sorted([max(0, variant_time_x), max(0, variant_time_y)])
 
     total_delay = wait_time + random.uniform(variant_time_x, variant_time_y)
-    print_from("OperaPowerTools", f"Waiting for {total_delay:.2f} seconds...")
+    print_from("OPR - time_delay", f"Waiting for {total_delay:.2f} seconds...")
     time.sleep(total_delay)
 
 
@@ -632,32 +632,188 @@ def get_main_idea(passage: str, sentences: int = 1, summarizer: str = 'lsa') -> 
     return " ".join(str(sentence) for sentence in summary)
 
 
-def print_from(name: str, message: str) -> None:
+def print_from(name: str, message: str) -> str:
     """
-    Prints a message with the given name, prefixed in square brackets.
+    Prints a formatted message with a name prefix and returns the formatted string.
 
     Parameters
     ----------
     name : str
-        The name to print in square brackets.
+        The name to be displayed as a prefix in the message.
     message : str
-        The message to print after the name.
-    """
-    
-    print(f"[{name}] {message}")
+        The message content to be printed and returned.
 
-def print_pretty(message: str, flourish: str, num: int) -> None:
+    Returns
+    -------
+    str
+        The formatted string of the form "[name] message".
+    """
+
+    _ = f"[{name}] {message}"
+
+    print(_)
+
+    return _
+
+def print_pretty(message: str, flourish: str, num: int) -> str:
 
     """
-    Prints a message with a flourish around it.
+    Prints a formatted message with a flourish prefix and suffix, and returns the formatted string.
 
     Parameters
     ----------
     message : str
-        The message to print.
+        The message content to be printed and returned.
     flourish : str
-        The character to use for the flourish.
+        The flourish string to be repeated at the start and end of the message.
     num : int
-        The number of times to repeat the flourish on each side of the message.
+        The number of times the flourish should be repeated.
+
+    Returns
+    -------
+    str
+        The formatted string of the form "{flourish * num} message {flourish * num}".
     """
-    print(f"{flourish * num} {message} {flourish * num}")
+
+    _ = f"{flourish * num} {message} {flourish * num}"
+
+    print(_)
+
+    return _
+
+def stubborn_call(*args, func: callable, stubborn: bool = False, wait_time: float = .5, whitelist: list[Exception] = [], whitelist_message: str = None, **kwargs) -> any:
+    
+    """
+    Calls a function with the given arguments and keyword arguments, and if the function call fails (raises an exception),
+    it will retry the function call after a specified wait time. If a whitelist of exceptions is provided, it will not
+    re-raise the error if the exception is in the whitelist, and will print a message indicating that the error was expected.
+
+    NOTE: Put non-keyword arguments as the starting arguments, before the callable.
+
+    Parameters
+    ----------
+    *args : any
+        Positional arguments to be passed to the callable.
+    func : callable
+        The function to be called.
+    stubborn : bool, optional
+        If set to True, the function will keep retrying until stopped, by default False.
+    wait_time : float, optional
+        The time to wait in seconds before retrying the function call, by default 0.5.
+    whitelist : list[Exception], optional
+        A list of exceptions to be considered expected and not re-raised, by default empty.
+    whitelist_message : str, optional
+        A custom message to be printed when an expected error is encountered, by default None.
+    **kwargs : any
+        Keyword arguments to be passed to the callable.
+
+    Returns
+    -------
+    any
+        The return value of the callable.
+    """
+
+    import time
+
+    print_from("OPR - stubborn_call", f"Calling {func.__name__} with args: {args}, kwargs: {kwargs}")
+
+    while True:
+        
+        try:
+
+            return func(*args, **kwargs)    
+        
+        except Exception as e:    
+
+            if any(isinstance(e, exc) for exc in whitelist):
+                msg = whitelist_message if whitelist_message else f"Expected Error, retrying in {wait_time} seconds: {type(e).__name__}"
+                print_from("OPR - stubborn_call", msg)
+            
+            else:
+                print_from("OPR - stubborn_call", f"Unexpected Error: {e}")
+
+                if not stubborn: 
+                    raise e
+                
+            
+            time.sleep(wait_time)
+            continue
+            
+
+
+def hammer_call(*args, func: callable, stop_at: callable = None, stop_if: any = None, try_count: int = 3,  stubborn: bool = False, wait_time: float = .5, whitelist: list[Exception] = [], whitelist_message: str = None, **kwargs) -> any:
+
+    """
+    Calls a function multiple times until it the tries are exhausted, or a specified stop condition is met.
+
+    NOTE: Put non-keyword arguments as the starting arguments, before the callable.
+
+    Parameters
+    ----------
+    *args : any
+        Positional arguments to be passed to the callable.
+    func : callable
+        The callable to be called.
+    stop_at : callable, optional
+        A function that takes one argument to check if the result of the callable meets a certain condition, by default None.
+    stop_if : any, optional
+        A value to check if the result of the callable is equal to, by default None.
+    try_count : int, optional
+        The number of times to call the callable, by default 3.
+    stubborn : bool, optional
+        Whether to keep trying even if an unexpected error occurs, by default False.
+    wait_time : float, optional
+        The time in seconds to wait between calls, by default 0.5.
+    whitelist : list[Exception], optional
+        A list of exceptions that are expected to occur and should be ignored, by default [].
+    whitelist_message : str, optional
+        A custom message to be printed when an expected error is encountered, by default None.
+    **kwargs : any
+        Keyword arguments to be passed to the callable.
+
+    Returns
+    -------
+    any
+        The return value of the callable.
+    """
+    import time
+
+    print_from("OPR - hammer_call", f"Calling {func.__name__} with args: {args}, kwargs: {kwargs}")
+
+    result = None
+        
+    for _ in range(try_count):
+            
+        try:
+
+            result = func(*args, **kwargs)
+
+            if stop_at is not None and stop_at(result) == stop_if:
+                return result
+
+        except Exception as e:
+
+            if any(isinstance(e, exc) for exc in whitelist):
+                msg = whitelist_message if whitelist_message else f"Expected Error, retrying in {wait_time} seconds: {type(e).__name__}"
+
+                print_from("OPR - hammer_call", msg)
+
+            else:
+                print_from("OPR - hammer_call", f"Unexpected Error: {e}")
+
+                if not stubborn: 
+                    raise e           
+            
+        
+        time.sleep(wait_time)
+
+    return result
+
+    
+
+
+
+
+
+
+

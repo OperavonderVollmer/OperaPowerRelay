@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="OperaPowerTools",
+    name="OperaPowerRelay",
     version="1.0",
     packages=find_packages(),
     install_requires=[
@@ -18,6 +18,6 @@ setup(
     python_requires=">=3.7",
     author="Opera von der Vollmer",
     description="A collection of useful utilities for various tasks.",
-    url="https://github.com/OperavonderVollmer/OperaPowerTools", 
+    url="https://github.com/OperavonderVollmer/OperaPowerRelay", 
     license="MIT",
 )
