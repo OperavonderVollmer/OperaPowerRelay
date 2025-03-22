@@ -11,6 +11,7 @@
 
 You can install **OperaPowerRelay** directly from your local development environment using `pip`:
 
+### Manually
 1. Clone or download the repository.
 
 2. Navigate to the directory containing `setup.py`:
@@ -24,6 +25,16 @@ You can install **OperaPowerRelay** directly from your local development environ
     ```bash
     pip install -e .
     ```
+### Using pip
+pip install git+https://github.com/OperavonderVollmer/OperaPowerRelay.git@+the tag of the release version you want to install
+```
+pip install git+https://github.com/OperavonderVollmer/OperaPowerRelay.git@v1.1
+```
+Technically, 
+```
+pip install git+https://github.com/OperavonderVollmer/OperaPowerRelay.git
+```
+Also works but this installs the current commit which may or may not work :)
 
 This will install **OperaPowerRelay** and allow you to import and use it in any Python project.
 
