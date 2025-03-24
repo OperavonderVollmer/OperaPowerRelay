@@ -3,11 +3,11 @@
     Yippie!!!
 """
 
-CURRENT_VERSION = "v1.1.1"
+CURRENT_VERSION = "v1.1.2"
 
 def get_version() -> str:
     """
-        I'm going crazy1111
+        Every time, I have to change this a little bit lol
     """
     return CURRENT_VERSION
 
@@ -309,55 +309,36 @@ def sanitize_text(text: str, more_keywords: list[str] = []) -> tuple[str, str]:
     return text, ""
 
 
-def enumerate_directory(path: str, levels: int = 1) -> dict[str, list[str | dict[str, list]]]:
-    """
-    Enumerates the contents of the given directory, optionally recursing into
-    subdirectories up to the given number of levels.
 
-    Parameters
-    ----------
-    path : str
-        The path to the directory to enumerate.
-    levels : int, optional
-        The number of levels to recurse into subdirectories. Defaults to 1.
 
-    Returns
-    -------
-    dict[str, list[str | dict[str, list]]]
-        A dictionary with the given path as the key and a list of its contents as
-        the value. If `levels` is greater than 1, each subdirectory will be
-        represented as a nested dictionary. If any errors occur while enumerating
-        the directory, the "error" key will contain a list of error messages.
-    """
-    
+def enumerate_directory(path: str, levels: int = 0) -> list[str | dict[str, list]]:
+    import os
     def _scan_directory(directory: str, depth: int) -> list[str | dict[str, list]]:
-        from os import scandir
-        from os.path import isdir
-
         contents = []
-
+        
         try:
-            for entry in scandir(directory):
-                if entry.is_file():
-                    contents.append(entry.name)
-                elif entry.is_dir() and depth > 0:
-                    subdir_contents = _scan_directory(entry.path, depth - 1)
-                    if subdir_contents:
-                        contents.append({entry.name: subdir_contents})
+            with os.scandir(directory) as entries:
+                for entry in entries:
+                    if entry.is_file():
+                        contents.append(entry.name)
+                    elif entry.is_dir():
+                        if depth > 0:
+                            subdir_contents = _scan_directory(entry.path, depth - 1)
+                            contents.append({entry.name: subdir_contents})
+                        else:
+                            contents.append(entry.name)
         except PermissionError:
-            pass  
+            print(f"Permission denied: {directory}")
 
         return contents
 
-    from os.path import exists, isdir
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Directory does not exist: {path}")
 
-    if not exists(path):
-        return {"error": [f"Directory does not exist: {path}"]}
+    if not os.path.isdir(path):
+        raise NotADirectoryError(f"Path is not a directory: {path}")
 
-    if not isdir(path):
-        return {"error": [f"Path is not a directory: {path}"]}
-
-    return {path: _scan_directory(path, levels)}
+    return _scan_directory(path, levels)
 
 
 def clipboard_get() -> str:
