@@ -798,10 +798,37 @@ def hammer_call(*args, func: callable, stop_at: callable = None, stop_if: any = 
     return result
 
     
+def clean_path(path: str) -> str:
+    """
+    Cleans the given file path by removing leading command symbols, 
+    extraneous surrounding quotes, and redundant quote characters. 
+    Normalizes the path for the operating system.
 
+    NOTE: This is to be used for file paths that are dragged and dropped onto the terminal.
 
+    Parameters
+    ----------
+    path : str
+        The file path to be cleaned.
 
+    Returns
+    -------
+    str
+        The cleaned and normalized file path.
+    """
 
+    import os
+    
+    if path.startswith("& "):
+        path = path[2:]
+
+    if (path.startswith("'") and path.endswith("'")) or (path.startswith('"') and path.endswith('"')):
+        path = path[1:-1]
+
+    if "''" in path:
+        path = path.replace("''", "'")
+
+    return os.path.normpath(path)
 
 
 
