@@ -3,7 +3,7 @@
     Yippie!!!
 """
 
-CURRENT_VERSION = "v1.1.4"
+CURRENT_VERSION = "v1.1.5"
 
 def get_version() -> str:
     """
@@ -860,4 +860,49 @@ def clean_path(path: str) -> str:
     return os.path.normpath(path)
 
 
+def load_json(is_from: str, path: str, filename: str = "config.json"):
 
+    """
+    Loads a JSON file from a given path and filename.
+
+    Parameters
+    ----------
+    is_from : str
+        The name of the module or function calling this function, used for printing.
+    path : str
+        The path to the directory containing the JSON file.
+    filename : str, optional
+        The filename of the JSON file to be loaded, by default "config.json".
+
+    Returns
+    -------
+    dict
+        The loaded JSON file as a dictionary.
+    """
+    import json, os
+
+    print_from(is_from, "Loading config file")
+    config_file_path = os.path.join(path, filename)
+    
+    if not os.path.exists(config_file_path):
+        with open(config_file_path, "w") as f:
+            print_from(is_from, f"{filename} not found, creating empty file")
+            f.write("{}")
+    
+    with open(config_file_path, "r") as f:
+        print_from(is_from, f"SUCCESS: Loaded {filename}")
+        return json.load(f)
+
+def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json", indent: int = 4):
+
+    import json, os
+
+    print_from(is_from, "Saving config file")
+
+    config_file_path = os.path.join(path, filename)
+    
+    os.makedirs(path, exist_ok=True)
+
+    with open(config_file_path, "w") as f:
+        json.dump(dump, f, indent = indent)
+        print_from(is_from, f"SUCCESS: Saved {filename}")
