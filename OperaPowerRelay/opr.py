@@ -3,7 +3,7 @@
     Yippie!!!
 """
 
-CURRENT_VERSION = "v1.1.3"
+CURRENT_VERSION = "v1.1.4"
 
 def get_version() -> str:
     """
@@ -304,6 +304,7 @@ def sanitize_text(text: str, more_keywords: list[str] = []) -> tuple[str, str]:
     
     if match:
         log_message = f"Blocked potentially dangerous input: '{text}' matches keyword '{match.group()}'"
+        print_from("LogFileMonitor - Sanitize Text", log_message)
         return "", log_message
 
     return text, ""
@@ -620,26 +621,54 @@ def get_main_idea(passage: str, sentences: int = 1, summarizer: str = 'lsa') -> 
     return " ".join(str(sentence) for sentence in summary)
 
 
-def print_from(name: str, message: str) -> str:
+def print_from(name: str, message: str, return_count: int = 0) -> str:
+
     """
-    Prints a formatted message with a name prefix and returns the formatted string.
+    Prints a formatted message with an optional number of preceding newlines, and returns the formatted string.
+
+    Parameters
+    ----------
+    name : str
+        The name to be used as a prefix in the message.
+    message : str
+        The message content to be printed.
+    return_count : int, optional
+        The number of newline characters to prepend before the message. Defaults to 0.
+
+    Returns
+    -------
+    str
+        The formatted string of the form "[{name}] {message}".
+    """
+
+    if return_count > 0:
+        _ = "\n" * return_count
+        print(_)
+
+    _ = f"[{name}] {message}"
+
+    print(_)
+
+    return _
+
+def input_from(name: str, message: str) -> str:
+
+    """
+    Asks the user for input with a name prefix and returns the input string.
 
     Parameters
     ----------
     name : str
         The name to be displayed as a prefix in the message.
     message : str
-        The message content to be printed and returned.
+        The message content to be displayed before the input prompt.
 
     Returns
     -------
     str
-        The formatted string of the form "[name] message".
+        The string input by the user.
     """
-
-    _ = f"[{name}] {message}"
-
-    print(_)
+    _ = input(f"[{name}] {message}: ")
 
     return _
 
