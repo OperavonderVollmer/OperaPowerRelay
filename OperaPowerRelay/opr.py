@@ -3,7 +3,7 @@
     Yippie!!!
 """
 
-CURRENT_VERSION = "v1.1.5"
+CURRENT_VERSION = "v1.1.6"
 
 def get_version() -> str:
     """
@@ -882,6 +882,17 @@ def load_json(is_from: str, path: str, filename: str = "config.json"):
     import json, os
 
     print_from(is_from, "Loading config file")
+
+
+    if os.path.isfile(path):
+        path = os.path.dirname(path)
+
+    elif os.path.isdir(path):
+        pass
+
+    else:
+        raise TypeError("path must be a file or directory")
+
     config_file_path = os.path.join(path, filename)
     
     if not os.path.exists(config_file_path):
@@ -895,10 +906,46 @@ def load_json(is_from: str, path: str, filename: str = "config.json"):
 
 def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json", indent: int = 4):
 
+    
+    """
+    Saves a dictionary as a JSON file to a specified path and filename.
+
+    Parameters
+    ----------
+    is_from : str
+        The name of the module or function calling this function, used for printing.
+    path : str
+        The path to the directory where the JSON file should be saved.
+    dump : dict
+        The dictionary to be serialized and saved as a JSON file.
+    filename : str, optional
+        The filename of the JSON file to be created, by default "config.json".
+    indent : int, optional
+        The number of spaces to use as indentation in the JSON file, by default 4.
+
+    Raises
+    ------
+    TypeError
+        If path is neither a file nor a directory.
+
+    Notes
+    -----
+    If the specified directory does not exist, it will be created.
+    """
+
     import json, os
 
     print_from(is_from, "Saving config file")
 
+    if os.path.isfile(path):
+        path = os.path.dirname(path)
+
+    elif os.path.isdir(path):
+        pass
+    
+    else:
+        raise TypeError("path must be a file or directory")
+    
     config_file_path = os.path.join(path, filename)
     
     os.makedirs(path, exist_ok=True)
