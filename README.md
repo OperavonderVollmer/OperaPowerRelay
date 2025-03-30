@@ -31,21 +31,9 @@
    ```
 
 ### Installing via pip
-
-To install a **specific release version**, simply replace the XXXX's for the tag of the desired release:
-
 ```sh
-pip install git+https://github.com/OperavonderVollmer/OperaPowerRelay.git@XXXXXXXXXX
+pip install git+https://github.com/OperavonderVollmer/OperaPowerRelay.git@main
 ```
-This ensures you're using a stable version.
-
-Alternatively, to install the **latest commit** from the default branch:
-
-```sh
-pip install git+https://github.com/OperavonderVollmer/OperaPowerRelay.git
-```
-
-⚠️ This may include untested changes.
 
 ## Usage
 
