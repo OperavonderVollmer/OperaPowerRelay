@@ -908,31 +908,25 @@ def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json"
 
     
     """
-    Saves a dictionary as a JSON file to a specified path and filename.
+    Saves a given dictionary to a JSON file in the given directory.
 
     Parameters
     ----------
     is_from : str
         The name of the module or function calling this function, used for printing.
     path : str
-        The path to the directory where the JSON file should be saved.
+        The path to the directory containing the JSON file.
     dump : dict
-        The dictionary to be serialized and saved as a JSON file.
+        The dictionary to be saved as a JSON file.
     filename : str, optional
-        The filename of the JSON file to be created, by default "config.json".
+        The filename of the JSON file to be saved, by default "config.json".
     indent : int, optional
-        The number of spaces to use as indentation in the JSON file, by default 4.
+        The indentation of the JSON file, by default 4.
 
-    Raises
-    ------
-    TypeError
-        If path is neither a file nor a directory.
-
-    Notes
-    -----
-    If the specified directory does not exist, it will be created.
+    Returns
+    -------
+    None
     """
-
     import json, os
 
     print_from(is_from, "Saving config file")
@@ -953,3 +947,71 @@ def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json"
     with open(config_file_path, "w") as f:
         json.dump(dump, f, indent = indent)
         print_from(is_from, f"SUCCESS: Saved {filename}")
+
+
+
+def string_formatted(message: str) -> str:
+
+    """
+    Replace color and formatting placeholders in the input string with ANSI escape codes 
+    for styled console output.
+
+    Parameters
+    ----------
+    message : str
+        The input string containing placeholders in curly braces `{}`.
+
+    Returns
+    -------
+    str
+        The formatted string with ANSI escape codes for colored and styled terminal output.
+
+    Color Placeholders
+    ------------------
+    - `bla`  : Black            - `red`  : Red
+    - `gre`  : Green            - `yel`  : Yellow
+    - `blu`  : Blue             - `mag`  : Magenta
+    - `cya`  : Cyan             - `whi`  : White
+    - `br_`  : Bright variant (e.g., `{br_red}` for bright red)
+    - `bg_`  : Background color (e.g., `{bg_blu}` for blue background)
+    - `bg_br_` : Bright background variant (e.g., `{bg_br_red}`)
+
+    Formatting Placeholders
+    -----------------------
+    - `{b}`      : Bold text
+    - `{i}`      : Italic text
+    - `{u}`      : Underlined text
+    - `{s}`      : Strikethrough text
+    - `{dim}`    : Dim/faint text
+    - `{rev}`    : Reverse colors (background ↔ text)
+    - `{hide}`   : Hidden/invisible text
+    - `{def}`    : Resets formatting to default
+
+    Notes
+    -----
+    - Works only in ANSI-compatible terminals.
+    - Italics may not be supported in some terminal emulators.
+    - Ensure placeholders are enclosed in `{}`.
+    """
+
+    COLOR_MAP = {
+        "bla": "\033[30m", "red": "\033[31m", "gre": "\033[32m", "yel": "\033[33m",
+        "blu": "\033[34m", "mag": "\033[35m", "cya": "\033[36m", "whi": "\033[37m",
+
+        "br_bla": "\033[90m", "br_red": "\033[91m", "br_gre": "\033[92m", "br_yel": "\033[93m",
+        "br_blu": "\033[94m", "br_mag": "\033[95m", "br_cya": "\033[96m", "br_whi": "\033[97m",
+
+        "bg_bla": "\033[40m", "bg_red": "\033[41m", "bg_gre": "\033[42m", "bg_yel": "\033[43m",
+        "bg_blu": "\033[44m", "bg_mag": "\033[45m", "bg_cya": "\033[46m", "bg_whi": "\033[47m",
+
+        "bg_br_bla": "\033[100m", "bg_br_red": "\033[101m", "bg_br_gre": "\033[102m", "bg_br_yel": "\033[103m",
+        "bg_br_blu": "\033[104m", "bg_br_mag": "\033[105m", "bg_br_cya": "\033[106m", "bg_br_whi": "\033[107m",
+
+        "b": "\033[1m", "i": "\033[3m", "u": "\033[4m", "s": "\033[9m", 
+        "dim": "\033[2m", "rev": "\033[7m", "hide": "\033[8m", "def": "\033[0m"
+    }
+
+    for key, code in COLOR_MAP.items():
+        message = message.replace(f"{{{key}}}", code) 
+
+    return message.strip()
