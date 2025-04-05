@@ -3,7 +3,7 @@
     Yippie!!!
 """
 
-CURRENT_VERSION = "v1.1.6"
+CURRENT_VERSION = "v1.1.8"
 
 def get_version() -> str:
     """
@@ -310,24 +310,61 @@ def sanitize_text(text: str, more_keywords: list[str] = []) -> tuple[str, str]:
     return text, ""
 
 
+def enumerate_directory(path: str, levels: int = 0, wholePath: bool = False) -> list[str | dict[str, list]]:
+    
 
 
-def enumerate_directory(path: str, levels: int = 0) -> list[str | dict[str, list]]:
+    """
+    Recursively enumerates the contents of a directory up to a specified depth.
+
+    This function scans the given directory and returns a list of its contents. 
+    It can traverse subdirectories up to a specified number of levels. The user 
+    can choose to return either the full path or just the names of the files and 
+    directories.
+
+    Parameters
+    ----------
+    path : str
+        The path to the directory to be enumerated.
+    levels : int, optional
+        The number of directory levels to traverse. If 0, only the contents of 
+        the specified directory are returned. By default, 0.
+    wholePath : bool, optional
+        If True, the full path of each file and directory is returned. If False, 
+        only the names are returned. By default, False.
+
+    Returns
+    -------
+    list[str | dict[str, list]]
+        A list of strings representing files and directories, or dictionaries 
+        where the key is the directory name and the value is a list of its 
+        contents.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the specified path does not exist.
+    """
+
     import os
+    
     def _scan_directory(directory: str, depth: int) -> list[str | dict[str, list]]:
         contents = []
         
         try:
             with os.scandir(directory) as entries:
                 for entry in entries:
+                    item_path = entry.path if wholePath else entry.name
+                    
                     if entry.is_file():
-                        contents.append(entry.name)
+                        contents.append(item_path)
+                        
                     elif entry.is_dir():
                         if depth > 0:
                             subdir_contents = _scan_directory(entry.path, depth - 1)
-                            contents.append({entry.name: subdir_contents})
+                            contents.append({item_path if wholePath else entry.name: subdir_contents})
                         else:
-                            contents.append(entry.name)
+                            contents.append(item_path)
         except PermissionError:
             print(f"Permission denied: {directory}")
 
@@ -337,9 +374,9 @@ def enumerate_directory(path: str, levels: int = 0) -> list[str | dict[str, list
         raise FileNotFoundError(f"Directory does not exist: {path}")
 
     if not os.path.isdir(path):
-        raise NotADirectoryError(f"Path is not a directory: {path}")
+        path = os.path.dirname(path)
 
-    return _scan_directory(path, levels)
+    return _scan_directory(os.path.abspath(path), levels)
 
 
 def clipboard_get() -> str:
@@ -621,7 +658,7 @@ def get_main_idea(passage: str, sentences: int = 1, summarizer: str = 'lsa') -> 
     return " ".join(str(sentence) for sentence in summary)
 
 
-def print_from(name: str, message: str, return_count: int = 0) -> str:
+def print_from(name: str, message: str, return_count: int = 0, after_return_count: int = 0, doPrint: bool = True) -> str:
 
     """
     Prints a formatted message with an optional number of preceding newlines, and returns the formatted string.
@@ -641,38 +678,74 @@ def print_from(name: str, message: str, return_count: int = 0) -> str:
         The formatted string of the form "[{name}] {message}".
     """
 
-    if return_count > 0:
-        _ = "\n" * return_count
+    for a in range(return_count):
+        print()
+
+    sName = string_formatted(name)
+    sMessage = string_formatted(message)
+    
+    _ = f"[{sName}] {sMessage}"
+
+    if doPrint:
         print(_)
 
-    _ = f"[{name}] {message}"
+    while after_return_count > 0 and doPrint:
+        print()
+        after_return_count -= 1
 
-    print(_)
+    if doPrint:
+        for a in range(after_return_count):
+            print()
 
     return _
 
-def input_from(name: str, message: str) -> str:
+def input_from(name: str, message: str, return_count: int = 0) -> str:
 
     """
-    Asks the user for input with a name prefix and returns the input string.
+    Prints a formatted message with a prompt, waits for user input, and returns the input.
 
     Parameters
     ----------
     name : str
-        The name to be displayed as a prefix in the message.
+        The name to be used as a prefix in the message.
     message : str
-        The message content to be displayed before the input prompt.
+        The message content to be printed with a prompt.
+    return_count : int, optional
+        The number of newline characters to prepend before the message. Defaults to 0.
 
     Returns
     -------
     str
-        The string input by the user.
+        The user's input.
     """
-    _ = input(f"[{name}] {message}: ")
+
+    for a in range(return_count):
+        print()
+
+    formatted = string_formatted(message)
+    _ = input(f"[{name}] {formatted}: ")
 
     return _
 
-def print_pretty(message: str, flourish: str, num: int) -> str:
+def input_timed(name: str, message: str, return_count: int = 0, wait_time: float = .5) -> str|None:
+
+    import time
+    import threading
+
+    result = None
+
+    def input_thread():
+        nonlocal result
+        result = input_from(name, message, return_count)
+        return result
+
+    thread = threading.Thread(target=input_thread, daemon=True)
+    thread.start()
+    thread.join(timeout=wait_time)
+
+    return result
+
+def print_pretty(message: str, flourish: str, num: int, doPrint: bool = True) -> str:
 
     """
     Prints a formatted message with a flourish prefix and suffix, and returns the formatted string.
@@ -692,9 +765,12 @@ def print_pretty(message: str, flourish: str, num: int) -> str:
         The formatted string of the form "{flourish * num} message {flourish * num}".
     """
 
-    _ = f"{flourish * num} {message} {flourish * num}"
+    sFlourish = string_formatted(flourish)
+    sMessage = string_formatted(message)
+    _ = f"{sFlourish * num} {sMessage} {sFlourish * num}"
 
-    print(_)
+    if doPrint:
+        print(_)
 
     return _
 
@@ -860,7 +936,7 @@ def clean_path(path: str) -> str:
     return os.path.normpath(path)
 
 
-def load_json(is_from: str, path: str, filename: str = "config.json"):
+def load_json(is_from: str, path: str, filename: str = "config.json") -> dict:
 
     """
     Loads a JSON file from a given path and filename.
@@ -1015,3 +1091,213 @@ def string_formatted(message: str) -> str:
         message = message.replace(f"{{{key}}}", code) 
 
     return message.strip()
+
+def error_pretty(exc: Exception, name: str="OPR - Error Pretty", message: str="Not Provided", level: str="ERROR") -> None:
+    """
+    Prints a formatted error message with a flourish prefix and suffix, and returns None.
+
+    Parameters
+    ----------
+    exc : Exception
+        The exception to be printed and formatted.
+    name : str, optional
+        The name of the caller to be printed in the error message.
+
+    Returns
+    -------
+    None
+    """
+
+    import traceback
+    import os
+
+    error_type = type(exc).__name__
+    error_message = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    
+    sName = string_formatted(name)
+    flourish = print_pretty('{bg_red} ERROR {def}', '{red}={def}', 5, False)
+    cleanMessage = f"FAILED\nException Type: {error_type}\n\nCustom Message: {message}\n\n{error_message}\n"
+    endMessage = f"{{bg_red}} FAILED {{def}}\n{flourish}\nException Type: {{bg_red}}{error_type}{{def}}\n\nCustom Message: {message}\n\n{error_message}{flourish}\n"
+    print_from(sName, endMessage)
+
+    documents_path = get_special_folder_path("Documents")
+    log_file_path = os.path.join(documents_path, "OperaPowerRelay")
+
+    if not os.path.exists(log_file_path):
+        os.makedirs(log_file_path, exist_ok=True)
+    
+    write_log(sName, log_file_path, "OperaPowerRelay.log", cleanMessage, level)
+
+    return cleanMessage
+    
+
+def wipe(debug: bool=False) -> None:
+    
+    """
+    Clears the console screen by issuing a system-specific command to clear the screen.
+    """
+    import os
+    if not debug:
+        os.system('cls' if os.name == 'nt' else 'clear')
+
+def list_choices(choices: list, title: str = "", return_count: int = 0, after_return_count: int = 0) -> None:
+    """
+    Prints a numbered list of choices from a list of strings.
+    
+    Parameters
+    ----------
+    choices : list
+        A list of strings to print as choices.
+    
+    Returns
+    -------
+    None
+    """
+
+    for a in range(return_count):
+        print()
+
+    if title != "":
+        print(title)
+
+    for a in range(after_return_count):
+        print()
+
+    for i, choice in enumerate(choices):
+        print(f"[{i+1}] {choice}")
+
+def write_log(isFrom: str, path: str, filename: str, message: str, level: str) -> None:
+    import os
+    import datetime
+    
+    path = clean_path(path)
+
+    logfile = ""
+    if os.path.isdir(path):
+        logfile = os.path.join(path, filename)
+
+    elif os.path.isfile(path):
+        logfile = path
+
+    if os.path.exists(logfile):
+        os.makedirs(os.path.dirname(logfile), exist_ok=True)
+        
+
+    print_from(isFrom, f"Writing log to {logfile}...")
+
+    
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    try:
+        with open(logfile, "a") as f:
+            f.write(f"\n{timestamp} - {isFrom} - {level} - {message}")
+    except Exception as e:
+        error_pretty(e, "OPR - Write Log", f"isFrom: {isFrom} | path: {path} | filename: {filename} | message: {message} | level: {level}")
+
+
+
+def get_special_folder_path(folder_name: str) -> str:
+
+    """
+    Returns the path to a special folder, given its name.
+
+    Parameters
+    ----------
+    folder_name : str
+        The name of the special folder.
+
+    Returns
+    -------
+    str
+        The path to the special folder.
+
+    Notes
+    -----
+    This function will create the folder if it doesn't exist.
+
+    The folder path is based on the platform the script is running on.
+    On Windows, it's the user's profile folder.
+    On macOS and Linux, it's the user's home folder.
+    """
+    import os
+    import platform
+
+    
+    if platform.system() == "Windows":
+        special_folder = os.path.join(os.getenv("USERPROFILE"), folder_name)
+    else:  # macOS
+        special_folder = os.path.join(os.getenv("HOME"), folder_name)
+
+    if not os.path.exists(special_folder):
+        os.makedirs(special_folder)
+
+    return special_folder
+
+
+def get_seconds(input_time: str) -> str | None:
+
+    """
+    Converts a time in the format "HH:MM:SS" or "HH:MM:SS.MS" to a string representing the total seconds.
+
+    Parameters
+    ----------
+    input_time : str
+        The time to convert.
+
+    Returns
+    -------
+    str | None
+        The total seconds in string format, or None if the input is invalid.
+
+    Notes
+    -----
+    If the input contains a decimal point, it is ignored.
+    """
+    try:
+
+        if "." in input_time:
+            input_time = input_time.split(".")[0]
+
+        arrayd = input_time.split(":")
+
+        total_seconds = 0
+        level = 1
+
+        for i in arrayd[::-1]:
+            total_seconds = int(total_seconds) + int(i) * level
+            level *= 60
+        
+        return str(total_seconds)
+    
+    except Exception as e:
+        print(f"Invalid Input: {e}")
+        return None
+    
+def seconds_to_time(seconds: int) -> str:
+
+
+    """
+    Converts a number of seconds to a string in the format "HH:MM:SS".
+
+    Parameters
+    ----------
+    seconds : int
+        The number of seconds to convert.
+
+    Returns
+    -------
+    str
+        The time in string format.
+
+    Notes
+    -----
+    The hours, minutes, and seconds are zero-padded to two digits.
+    """
+    
+    seconds = int(seconds)
+
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
