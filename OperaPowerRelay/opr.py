@@ -3,7 +3,7 @@
     Yippie!!!
 """
 
-CURRENT_VERSION = "v1.1.8"
+CURRENT_VERSION = "v1.1.9"
 
 def get_version() -> str:
     """
@@ -729,8 +729,36 @@ def input_from(name: str, message: str, return_count: int = 0) -> str:
 
 def input_timed(name: str, message: str, return_count: int = 0, wait_time: float = .5) -> str|None:
 
-    import time
+    """
+    DEPRECATED
+    ----------
+    USE input_timed_r instead
+    
+    DEPRECATED
+    ----------
+
+    Prints a formatted message with a prompt, waits for user input with a timeout, and returns the input.
+
+    Parameters
+    ----------
+    name : str
+        The name to be used as a prefix in the message.
+    message : str
+        The message content to be printed with a prompt.
+    return_count : int, optional
+        The number of newline characters to prepend before the message. Defaults to 0.
+    wait_time : float, optional
+        The time to wait for user input before timing out. Defaults to 0.5 seconds.
+
+    Returns
+    -------
+    str|None
+        The user's input if received within the wait time, otherwise None.
+    """
     import threading
+    import warnings
+
+    warnings.warn("input_timed is deprecated. Use input_timed_r instead.", DeprecationWarning)
 
     result = None
 
@@ -744,6 +772,131 @@ def input_timed(name: str, message: str, return_count: int = 0, wait_time: float
     thread.join(timeout=wait_time)
 
     return result
+
+def timed_input_unix(prompt: str, wait_time: float) -> str|None:
+    """
+    Reads user input from the console with a timeout.
+
+    Parameters
+    ----------
+    prompt : str
+        The string to be printed to the console as a prompt.
+    wait_time : float
+        The time to wait for user input before timing out.
+
+    Returns
+    -------
+    str | None
+        The user's input if received within the wait time, otherwise None.
+        
+    """
+    import select
+    import sys
+
+    print(prompt, end='', flush=True)
+    readable, _, _ = select.select([sys.stdin], [], [], wait_time)
+
+    if readable:
+        line = sys.stdin.readline().rstrip('\n')
+        return line
+    else:
+        return None
+
+def timed_input_windows(prompt: str, wait_time: float) -> str|None:
+    """
+    Reads user input from the console with a timeout.
+
+    Parameters
+    ----------
+    prompt : str
+        The string to be printed as a prompt.
+    wait_time : float
+        The time to wait for user input before timing out.
+
+    Returns
+    -------
+    str | None
+        The user's input if received within the wait time, otherwise None.
+
+    Notes
+    -----
+    This function is Windows-specific and uses the msvcrt module to read from the console.
+    It does not work on Unix-like systems.
+    """
+    import msvcrt
+    import time
+
+
+    print(prompt, end='', flush=True)
+    start_time = time.monotonic()
+    buffer = []
+
+    while True:
+        if time.monotonic() - start_time >= wait_time:
+            return None
+
+        if msvcrt.kbhit():
+            char_byte = msvcrt.getch()
+            try:
+                char = char_byte.decode('utf-8')
+
+                if char == '\r' or char == '\n':
+                    print()
+                    return "".join(buffer)
+                elif char == '\x08':
+                    if buffer:
+                        buffer.pop()
+
+                        print('\b \b', end='', flush=True)
+                elif char.isprintable(): 
+                    buffer.append(char)
+                    print(char, end='', flush=True)
+
+            except UnicodeDecodeError:
+                pass
+        else:
+            time.sleep(0.05) 
+
+
+def input_timed_r(name: str, message: str, return_count: int = 0, wait_time: float = 5) -> str|None:
+    
+    """
+    Prompts the user for input with a message, and waits for a specified time.
+
+    This function runs a thread to prompt the user for input while allowing
+    the main program to continue executing. It returns the user input if
+    received within the specified wait time, otherwise returns None.
+
+    Parameters
+    ----------
+    name : str
+        The name to be used as a prefix in the message.
+    message : str
+        The message content to be printed with a prompt.
+    return_count : int, optional
+        The number of newline characters to prepend before the message. Defaults to 0.
+    wait_time : float, optional
+        The time to wait for user input before timing out. Defaults to 5 seconds.
+
+    Returns
+    -------
+    str | None
+        The user's input if received within the wait time, otherwise None.
+    """
+    import os
+
+    sName = string_formatted(name)
+    sMessage = string_formatted(message)
+
+    prompt = f"[{sName}] {sMessage}: "
+
+    for a in range(return_count):
+        print()
+
+    if os.name == 'nt':
+        return timed_input_windows(prompt, wait_time)
+    else: 
+        return timed_input_unix(prompt, wait_time)
 
 def print_pretty(message: str, flourish: str, num: int, doPrint: bool = True) -> str:
 
@@ -976,7 +1129,7 @@ def load_json(is_from: str, path: str, filename: str = "config.json") -> dict:
             print_from(is_from, f"{filename} not found, creating empty file")
             f.write("{}")
     
-    with open(config_file_path, "r") as f:
+    with open(config_file_path, "r", encoding="utf-8") as f:
         print_from(is_from, f"SUCCESS: Loaded {filename}")
         return json.load(f)
 
@@ -1020,8 +1173,8 @@ def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json"
     
     os.makedirs(path, exist_ok=True)
 
-    with open(config_file_path, "w") as f:
-        json.dump(dump, f, indent = indent)
+    with open(config_file_path, "w", encoding="utf-8") as f:
+        json.dump(dump, f, indent = indent, ensure_ascii=False)
         print_from(is_from, f"SUCCESS: Saved {filename}")
 
 
@@ -1140,15 +1293,62 @@ def wipe(debug: bool=False) -> None:
     if not debug:
         os.system('cls' if os.name == 'nt' else 'clear')
 
-def list_choices(choices: list, title: str = "", return_count: int = 0, after_return_count: int = 0) -> None:
+def dict_choices(choices: dict[str, str|tuple], title: str = "", return_count: int = 0, after_return_count: int = 0) -> None:
+
     """
-    Prints a numbered list of choices from a list of strings.
-    
+    Prints a list of choices with an optional title and number of preceding and following newlines.
+
     Parameters
     ----------
-    choices : list
-        A list of strings to print as choices.
+    choices : dict[str, str|tuple]
+        A dictionary of choices to be printed. Each choice can be a string or a tuple of the form (int, str) where the int is the index and the str is the text of the choice.
+    title : str, optional
+        The title of the list of choices. Defaults to "".
+    return_count : int, optional
+        The number of newlines to print before the list of choices. Defaults to 0.
+    after_return_count : int, optional
+        The number of newlines to print after the list of choices. Defaults to 0.
+
+    Returns
+    -------
+    None
+    """
+    for a in range(return_count):
+        print()
     
+    if title != "":
+        print(title)
+
+    for a in range(after_return_count):
+        print()
+
+    for index, values in enumerate(choices.items()):
+        if isinstance(values[1], tuple):
+            i, v = values[1]
+        elif isinstance(values[1], str):
+            i = index + 1
+            v = values[1]
+        k = values[0]
+        print(f"[{i}] {k} - {v}")
+
+
+def list_choices(choices: list[str|tuple], title: str = "", return_count: int = 0, after_return_count: int = 0) -> None:
+    
+
+    """
+    Prints a list of choices with an optional title and number of preceding and following newlines.
+
+    Parameters
+    ----------
+    choices : list[str|tuple]
+        A list of choices to be printed. Each choice can be a string or a tuple of the form (int, str) where the int is the index and the str is the text of the choice.
+    title : str, optional
+        The title of the list of choices. Defaults to "".
+    return_count : int, optional
+        The number of newlines to print before the list of choices. Defaults to 0.
+    after_return_count : int, optional
+        The number of newlines to print after the list of choices. Defaults to 0.
+
     Returns
     -------
     None
@@ -1163,10 +1363,15 @@ def list_choices(choices: list, title: str = "", return_count: int = 0, after_re
     for a in range(after_return_count):
         print()
 
-    for i, choice in enumerate(choices):
-        print(f"[{i+1}] {choice}")
+    for index, choice in enumerate(choices):
+        if isinstance(choice, tuple):
+            i, c = choice
+        elif isinstance(choice, str):
+            i = index + 1
+            c = choice
+        print(f"[{i}] {c}")
 
-def write_log(isFrom: str, path: str, filename: str, message: str, level: str) -> None:
+def write_log(isFrom: str, path: str, filename: str, message: str, level: str, verbose: bool=False) -> None:
     import os
     import datetime
     
@@ -1179,18 +1384,24 @@ def write_log(isFrom: str, path: str, filename: str, message: str, level: str) -
     elif os.path.isfile(path):
         logfile = path
 
-    if os.path.exists(logfile):
+    if not os.path.exists(logfile):
         os.makedirs(os.path.dirname(logfile), exist_ok=True)
         
 
-    print_from(isFrom, f"Writing log to {logfile}...")
+    if verbose:
+        print_from(isFrom, f"Writing log to {logfile}...")
 
     
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    log_message = f"\n{timestamp} - {isFrom} - {level} - {message}"
+
+    if verbose:
+        print_from(isFrom, log_message)
+
     try:
         with open(logfile, "a") as f:
-            f.write(f"\n{timestamp} - {isFrom} - {level} - {message}")
+            f.write(log_message)
     except Exception as e:
         error_pretty(e, "OPR - Write Log", f"isFrom: {isFrom} | path: {path} | filename: {filename} | message: {message} | level: {level}")
 
@@ -1301,3 +1512,5 @@ def seconds_to_time(seconds: int) -> str:
     seconds = seconds % 60
 
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+
