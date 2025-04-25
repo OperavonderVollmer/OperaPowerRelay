@@ -1394,7 +1394,7 @@ def write_log(isFrom: str, path: str, filename: str, message: str, level: str, v
     
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    log_message = f"\n{timestamp} - {isFrom} - {level} - {message}"
+    log_message = f"{timestamp} - {isFrom} - {level} - {message}"
 
     if verbose:
         print_from(isFrom, log_message)
