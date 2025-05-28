@@ -3,7 +3,7 @@
     Yippie!!!
 """
 
-CURRENT_VERSION = "v1.1.9"
+CURRENT_VERSION = "v1.1.10"
 
 def get_version() -> str:
     """
@@ -1175,7 +1175,7 @@ def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json"
 
     with open(config_file_path, "w", encoding="utf-8") as f:
         json.dump(dump, f, indent = indent, ensure_ascii=False)
-        print_from(is_from, f"SUCCESS: Saved {filename}")
+        print_from(is_from, f"SUCCESS: Saved {config_file_path}")
 
 
 
