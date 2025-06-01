@@ -3,7 +3,7 @@
     Yippie!!!
 """
 
-CURRENT_VERSION = "v1.1.10"
+CURRENT_VERSION = "v1.1.9"
 
 def get_version() -> str:
     """
@@ -1133,7 +1133,7 @@ def load_json(is_from: str, path: str, filename: str = "config.json") -> dict:
         print_from(is_from, f"SUCCESS: Loaded {filename}")
         return json.load(f)
 
-def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json", indent: int = 4):
+def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json", indent: int = 4, use_temp: bool = False) -> str:
 
     
     """
@@ -1151,34 +1151,49 @@ def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json"
         The filename of the JSON file to be saved, by default "config.json".
     indent : int, optional
         The indentation of the JSON file, by default 4.
+    use_temp : bool, optional
+        Whether to use a temporary file when saving the JSON file, by default False.
 
     Returns
     -------
-    None
+    str 
+        A message indicating the success or failure of the save operation.
     """
-    import json, os
+    import json, os, shutil, tempfile
 
-    print_from(is_from, "Saving config file")
+    try:
+        print_from(is_from, "Saving config file")
 
-    if os.path.isfile(path):
-        path = os.path.dirname(path)
+        if os.path.isfile(path):
+            path = os.path.dirname(path)
 
-    elif os.path.isdir(path):
-        pass
-    
-    else:
-        raise TypeError("path must be a file or directory")
-    
-    config_file_path = os.path.join(path, filename)
-    
-    os.makedirs(path, exist_ok=True)
+        elif os.path.isdir(path):
+            pass
+        
+        else:
+            raise TypeError("path must be a file or directory")
+        
+        config_file_path = os.path.join(path, filename)
+        
+        os.makedirs(path, exist_ok=True)
 
-    with open(config_file_path, "w", encoding="utf-8") as f:
-        json.dump(dump, f, indent = indent, ensure_ascii=False)
+        if use_temp:
+            fd, temp_path = tempfile.mkstemp(dir=os.path.dirname(path))
+            os.close(fd)
+            with open(temp_path, "w", encoding="utf-8") as f:
+                json.dump(dump, f, indent = indent, ensure_ascii=False)
+            shutil.move(temp_path, config_file_path)
+        
+        else:
+            with open(config_file_path, "w", encoding="utf-8") as f:
+                json.dump(dump, f, indent = indent, ensure_ascii=False)
+
         print_from(is_from, f"SUCCESS: Saved {config_file_path}")
+        return f"SUCCESS: Saved {config_file_path}"
 
-
-
+    except Exception as e:
+        return error_pretty(exc=e, name=is_from, message=f"Failed to save {config_file_path}")
+    
 def string_formatted(message: str) -> str:
 
     """
@@ -1245,7 +1260,7 @@ def string_formatted(message: str) -> str:
 
     return message.strip()
 
-def error_pretty(exc: Exception, name: str="OPR - Error Pretty", message: str="Not Provided", level: str="ERROR") -> None:
+def error_pretty(exc: Exception, name: str="OPR - Error Pretty", message: str="Not Provided", level: str="ERROR") -> str:
     """
     Prints a formatted error message with a flourish prefix and suffix, and returns None.
 
@@ -1258,7 +1273,8 @@ def error_pretty(exc: Exception, name: str="OPR - Error Pretty", message: str="N
 
     Returns
     -------
-    None
+    str :
+        The formatted error message.
     """
 
     import traceback
@@ -1268,9 +1284,9 @@ def error_pretty(exc: Exception, name: str="OPR - Error Pretty", message: str="N
     error_message = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
     
     sName = string_formatted(name)
-    flourish = print_pretty('{bg_red} ERROR {def}', '{red}={def}', 5, False)
+    flourish = print_pretty('{red} ERROR {def}', '{red}={def}', 5, False)
     cleanMessage = f"FAILED\nException Type: {error_type}\n\nCustom Message: {message}\n\n{error_message}\n"
-    endMessage = f"{{bg_red}} FAILED {{def}}\n{flourish}\nException Type: {{bg_red}}{error_type}{{def}}\n\nCustom Message: {message}\n\n{error_message}{flourish}\n"
+    endMessage = f"{{red}} FAILED {{def}}\n{flourish}\nException Type: {{red}}{error_type}{{def}}\n\nCustom Message: {message}\n\n{error_message}{flourish}\n"
     print_from(sName, endMessage)
 
     documents_path = get_special_folder_path("Documents")
