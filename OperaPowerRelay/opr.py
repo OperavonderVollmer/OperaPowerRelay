@@ -3,7 +3,7 @@
     Yippie!!!
 """
 
-CURRENT_VERSION = "v1.1.9"
+CURRENT_VERSION = "v1.1.11"
 
 def get_version() -> str:
     """

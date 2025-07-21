@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="OperaPowerRelay",
-    version="1.1.10",
+    version="1.1.11",
     packages=find_packages(),
     install_requires=[
         "inflect",
