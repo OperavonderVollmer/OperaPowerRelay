@@ -3,7 +3,7 @@
     Yippie!!!
 """
 
-CURRENT_VERSION = "v1.1.11"
+CURRENT_VERSION = "v1.1.12"
 
 def get_version() -> str:
     """
@@ -1160,22 +1160,26 @@ def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json"
         A message indicating the success or failure of the save operation.
     """
     import json, os, shutil, tempfile
+    from pathlib import Path
 
     try:
         print_from(is_from, "Saving config file")
 
-        if os.path.isfile(path):
-            path = os.path.dirname(path)
+        path = clean_path(path)
 
-        elif os.path.isdir(path):
-            pass
-        
+        p = Path(path)
+
+        if not p.suffix:
+            config_file_path = os.path.join(path, filename)
+
         else:
-            raise TypeError("path must be a file or directory")
+            config_file_path = path
+
         
-        config_file_path = os.path.join(path, filename)
-        
-        os.makedirs(path, exist_ok=True)
+        if not os.path.exists(config_file_path):
+            print_from("OPR - Write Log", f"Creating json file: {config_file_path}")
+            os.makedirs(os.path.dirname(config_file_path), exist_ok=True)
+
 
         if use_temp:
             fd, temp_path = tempfile.mkstemp(dir=os.path.dirname(path))
@@ -1387,20 +1391,46 @@ def list_choices(choices: list[str|tuple], title: str = "", return_count: int = 
             c = choice
         print(f"[{i}] {c}")
 
-def write_log(isFrom: str, path: str, filename: str, message: str, level: str, verbose: bool=False) -> None:
+def write_log(isFrom: str, path: str, message: str, level: str, filename: str = "", verbose: bool=False) -> None:
+    """
+    Writes a log message to a file at a given path with an optional filename, level, and verbosity.
+
+    Parameters
+    ----------
+    isFrom : str
+        The name of the module or function calling this function, used for printing.
+    path : str
+        The path to the directory containing the log file.
+    filename : str, optional
+        The filename of the log file to be written, by default an empty string.
+    message : str
+        The log message to be written.
+    level : str
+        The level of the log message (e.g. INFO, WARNING, ERROR).
+    verbose : bool, optional
+        Whether to print the log message to the console, by default False.
+
+    Returns
+    -------
+    None
+    """
     import os
     import datetime
+    from pathlib import Path
     
     path = clean_path(path)
 
     logfile = ""
-    if os.path.isdir(path):
+    p = Path(path)
+    
+    if not p.suffix:
         logfile = os.path.join(path, filename)
 
-    elif os.path.isfile(path):
+    else:
         logfile = path
 
     if not os.path.exists(logfile):
+        print_from("OPR - Write Log", f"Creating log file: {logfile}")
         os.makedirs(os.path.dirname(logfile), exist_ok=True)
         
 
@@ -1410,7 +1440,7 @@ def write_log(isFrom: str, path: str, filename: str, message: str, level: str, v
     
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    log_message = f"{timestamp} - {isFrom} - {level} - {message}"
+    log_message = f"{timestamp} - {isFrom} - {level} - {message}\n"
 
     if verbose:
         print_from(isFrom, log_message)
