@@ -3,7 +3,7 @@
     Yippie!!!
 """
 
-CURRENT_VERSION = "v1.1.12"
+CURRENT_VERSION = "v1.1.11"
 
 def get_version() -> str:
     """
@@ -1134,8 +1134,7 @@ def load_json(is_from: str, path: str, filename: str = "config.json") -> dict:
         return json.load(f)
 
 def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json", indent: int = 4, use_temp: bool = False) -> str:
-
-    
+   
     """
     Saves a given dictionary to a JSON file in the given directory.
 
@@ -1162,6 +1161,7 @@ def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json"
     import json, os, shutil, tempfile
     from pathlib import Path
 
+    config_file_path = "missing"
     try:
         print_from(is_from, "Saving config file")
 
@@ -1175,7 +1175,6 @@ def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json"
         else:
             config_file_path = path
 
-        
         if not os.path.exists(config_file_path):
             print_from("OPR - Write Log", f"Creating json file: {config_file_path}")
             os.makedirs(os.path.dirname(config_file_path), exist_ok=True)
@@ -1195,7 +1194,7 @@ def save_json(is_from: str, path: str, dump: dict, filename: str = "config.json"
         print_from(is_from, f"SUCCESS: Saved {config_file_path}")
         return f"SUCCESS: Saved {config_file_path}"
 
-    except Exception as e:
+    except Exception as e:        
         return error_pretty(exc=e, name=is_from, message=f"Failed to save {config_file_path}")
     
 def string_formatted(message: str) -> str:
