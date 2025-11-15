@@ -3,7 +3,7 @@
     Yippie!!!
 """
 
-CURRENT_VERSION = "v1.1.11"
+CURRENT_VERSION = "v1.2.0"
 
 def get_version() -> str:
     """
@@ -658,7 +658,7 @@ def get_main_idea(passage: str, sentences: int = 1, summarizer: str = 'lsa') -> 
     return " ".join(str(sentence) for sentence in summary)
 
 
-def print_from(name: str, message: str, return_count: int = 0, after_return_count: int = 0, doPrint: bool = True) -> str:
+def print_from(name: str, message: str, return_count: int = 0, after_return_count: int = 0, do_print: bool = True) -> str:
 
     """
     Prints a formatted message with an optional number of preceding newlines, and returns the formatted string.
@@ -671,6 +671,8 @@ def print_from(name: str, message: str, return_count: int = 0, after_return_coun
         The message content to be printed.
     return_count : int, optional
         The number of newline characters to prepend before the message. Defaults to 0.
+    do_print : bool, optional
+        Whether to print the formatted string. Defaults to True.
 
     Returns
     -------
@@ -686,14 +688,14 @@ def print_from(name: str, message: str, return_count: int = 0, after_return_coun
     
     _ = f"[{sName}] {sMessage}"
 
-    if doPrint:
+    if do_print:
         print(_)
 
-    while after_return_count > 0 and doPrint:
+    while after_return_count > 0 and do_print:
         print()
         after_return_count -= 1
 
-    if doPrint:
+    if do_print:
         for a in range(after_return_count):
             print()
 
@@ -1559,3 +1561,21 @@ def seconds_to_time(seconds: int) -> str:
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 
+def send_toast_notification(app_id: str, title: str, msg: str, icon_path: str, audio_path: str="", actions: dict | None = None) -> None:
+    import os
+    import winotify
+
+    toast = winotify.Notification(
+        app_id=app_id,
+        title=title,
+        msg=msg,
+        icon = icon_path,
+        
+    )
+    toast.set_audio(audio_path or winotify.audio.Default, loop=False)
+
+    if actions:
+        for label, launch in actions.items():
+            toast.add_actions(label=label, launch=launch)
+
+    toast.show()

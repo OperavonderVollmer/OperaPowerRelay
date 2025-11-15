@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="OperaPowerRelay",
-    version="1.1.12",
+    version="1.2.0",
     packages=find_packages(),
     install_requires=[
         "inflect",
@@ -14,6 +14,7 @@ setup(
         "rapidfuzz",
         "sumy",
         "word2number",
+        "winotify",
     ],
     python_requires=">=3.7",
     author="Opera von der Vollmer",
