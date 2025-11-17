@@ -7,3 +7,4 @@ OperaPowerRelay.egg-info/SOURCES.txt
 OperaPowerRelay.egg-info/top_level.txt
 OperaPowerRelay/__pycache__/__init__.cpython-310.pyc
 OperaPowerRelay/__pycache__/opr.cpython-310.pyc
+*.pyc

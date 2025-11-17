@@ -3,7 +3,7 @@
     Yippie!!!
 """
 
-CURRENT_VERSION = "v1.2.0"
+CURRENT_VERSION = "v1.2.1"
 
 def get_version() -> str:
     """
@@ -1579,3 +1579,45 @@ def send_toast_notification(app_id: str, title: str, msg: str, icon_path: str, a
             toast.add_actions(label=label, launch=launch)
 
     toast.show()
+
+def load_env(path: str=".env") -> dict:
+    """
+
+    Use os.path.dirname(os.path.abspath(__file__))
+
+    Docstring for load_env
+    
+    :param path: Description
+    :type path: str
+    :return: Description
+    :rtype: dict[Any, Any]
+    """
+    import os
+    from dotenv import dotenv_values
+
+    try:
+        plugin_env = dotenv_values(path)
+    except Exception as e:
+        print(e)
+
+    return plugin_env or {}
+
+
+def save_env(data: dict, path: str = ".env") -> bool:
+    lines = []
+
+    try:
+        for key, value in data.items():
+            # Escape values with spaces or special chars
+            if isinstance(value, str) and (" " in value or "=" in value):
+                value = f'"{value}"'
+            lines.append(f"{key}={value}")
+
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
+
+        return True
+
+    except Exception as e:
+        print(e)
+        return False
